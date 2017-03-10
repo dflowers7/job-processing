@@ -1,4 +1,4 @@
-function [outfiles,outfiles_jis,infiles,infiles_jis,cmdfiles,cmdfiles_jis] = JobFiles(direc)
+function [outfiles,outfiles_jis,infiles,infiles_jis,cmdfiles,cmdfiles_jis,inputargtablefile] = JobFiles(direc)
 % [outfiles,outfiles_jis,infiles,infiles_jis,cmdfiles,cmdfiles_jis] = JobFiles(direc)
 
 % Get input file names
@@ -45,5 +45,11 @@ end
 temp = sortrows(table(cmdfiles,cmdfiles_jis),'cmdfiles_jis');
 cmdfiles = temp{:,1};
 cmdfiles_jis = temp{:,2};
+
+% Search for an input argument table
+inputargtablefile = inputargtablefilename(direc);
+if ~(exist(inputargtablefile, 'file') > 0)
+    inputargtablefile = '';
+end
 
 end
