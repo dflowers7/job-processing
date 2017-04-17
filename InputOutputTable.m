@@ -96,6 +96,13 @@ for ji = infiles_jis_sort(:)'
     % Outputs
     if ~isempty(outfile)
         outfile_data = load(outfile);
+        
+        % Check that the number of outputs stored is the same as the number
+        % of provided output argument names
+        assert(numel(outfile_data.out) == numel(outputArgNames), 'InputOutputTable:OutputArgNamesLength', ...
+            'The loaded output file stores %g outputs, but %g output argument names were provided.', ...
+            numel(outfile_data.out), numel(outputArgNames))
+        
         for outi = 1:numel(outputArgNames)
             if ~any(strcmp(outputArgNames{outi},skippedOutputArgs))
                 tab(ji).(outputArgNames{outi}) = outfile_data.out{outi};
