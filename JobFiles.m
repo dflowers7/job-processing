@@ -1,4 +1,4 @@
-function [outfiles,outfiles_jis,infiles,infiles_jis,cmdfiles,cmdfiles_jis,inputargtablefile] = JobFiles(direc)
+function [outfiles,outfiles_jis,infiles,infiles_jis,cmdfiles,cmdfiles_jis,inputargtablefile,missing_jis] = JobFiles(direc)
 % [outfiles,outfiles_jis,infiles,infiles_jis,cmdfiles,cmdfiles_jis] = JobFiles(direc)
 
 % Get input file names
@@ -17,6 +17,9 @@ outfileexists = cellfun(@(f)exist(f, 'file')>0, outfiles);
 outfiles = outfiles(outfileexists);
 noutfiles = numel(outfiles);
 outfiles_jis = outfiles_jis(outfileexists);
+
+% Report job indices with missing output files
+missing_jis = setdiff(infiles_jis, outfiles_jis);
 
 % Get existing command line output files
 jobname = regexp(direc, '(?<=\d+\.\d+\.\d+-\d+\.\d+\_)[^\.]+', 'match');
