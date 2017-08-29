@@ -32,11 +32,16 @@ else
 end
 cmdfiles = fullfile(direc,{cmdfiles.name}');
 
-% Get job array indices corresponding to command line output files
-cmdfiles_jis = zeros(numel(cmdfiles),1);
+% Get job array indices corresponding to command line output files, at
+% least for those jobs that reached the stage where the job array ID was
+% printed
+cmdfiles_jis = nan(numel(cmdfiles),1);
 for i = 1:numel(cmdfiles)
     txt = fileread(cmdfiles{i});
     cmdoutfiles_ji = regexp(txt, 'Running job (\d+) in array', 'tokens');
+    if isempty(cmdoutfiles_ji)
+        continue
+    end
     cmdoutfiles_ji = cmdoutfiles_ji{1}{1};
     cmdfiles_jis(i) = str2double(cmdoutfiles_ji);
 end

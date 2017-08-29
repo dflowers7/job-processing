@@ -21,6 +21,12 @@ if nargin < 8
                 skippedOutputArgs = [];
                 if nargin < 4
                     skippedInputArgs = [];
+                    if nargin < 3
+                        outputArgNames = [];
+                        if nargin < 2
+                            inputArgNames = [];
+                        end
+                    end
                 end
             end
         end
@@ -46,9 +52,31 @@ infiles_jis_sort = sort(infiles_jis);
 tab = repmat(struct, numel(infiles), 1);
 jobmatches = true(numel(infiles),1);
 for ji = infiles_jis_sort(:)'
-    outfile = outfiles{outfiles_jis == ji};
+    
+    isoutfile = outfiles_jis == ji;
+    assert(sum(isoutfile)==0||sum(isoutfile)==1, 'InputOutputTable:MultipleMatchingOutputFiles',...
+        'Job %g has %g matching output files. There should be zero or one matching output files.', ji, sum(isoutfile))
+    
+    isinfile = infiles_jis == ji;
+    assert(sum(isinfile)==1, 'InputOutputTable:IncorrectNumberOfInputFiles', ...
+        'Job %g has %g matching input files. There should be one matching input file.', ji, sum(isinfile))
+    
+    iscmdfile = cmdfiles_jis == ji;
+    assert(sum(iscmdfile)==0||sum(iscmdfile)==1, 'InputOutputTable:IncorrectNumberOfCommandLineOutputFiles', ...
+        'Job %g has %g matching command line output files. There should be zero or one matching command line output files.', ...
+        ji, sum(iscmdfile)) 
+    
+    if any(isoutfile)
+        outfile = outfiles{isoutfile};
+    else
+        outfile = '';
+    end
     infile = infiles{infiles_jis == ji};
-    cmdfile = cmdfiles{cmdfiles_jis == ji};
+    if any(iscmdfile)
+        cmdfile = cmdfiles{cmdfiles_jis == ji};
+    else
+        cmdfile = '';
+    end
     
     % Inputs
     if inputArgTableProvided
@@ -56,6 +84,10 @@ for ji = infiles_jis_sort(:)'
     else
         infile_data = load(infile);
         infile_data = infile_data.input;
+    end
+    
+    if isempty(inputArgNames)
+        inputArgNames = arrayfun(@(i){sprintf('in%d',i)}, 1:numel(infile_data));
     end
     
     % Check that the number of inputs stored is the same as the number of
@@ -95,10 +127,22 @@ for ji = infiles_jis_sort(:)'
     
     % Outputs
     if ~isempty(outfile)
-        outfile_data = load(outfile);
+        try
+            outfile_data = load(outfile);
+        catch ME
+            fprintf(getReport(ME))
+            fprintf('Failed to load file. Skipping this file...\n')
+            continue
+        end
+        outfile_data = outfile_data.out;
+        
+        if isempty(outputArgNames)
+            outputArgNames = arrayfun(@(i){sprintf('out%d',i)}, 1:numel(outfile_data));
+        end
+        
         for outi = 1:numel(outputArgNames)
             if ~any(strcmp(outputArgNames{outi},skippedOutputArgs))
-                tab(ji).(outputArgNames{outi}) = outfile_data.out{outi};
+                tab(ji).(outputArgNames{outi}) = outfile_data{outi};
             end
         end
     end
